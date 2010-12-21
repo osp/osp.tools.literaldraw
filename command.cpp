@@ -12,6 +12,7 @@ Command::Command(QPainter * p)
 	commands.insert("cubic", 6);
 	commands.insert("stroke", 4);
 	commands.insert("fill", 3);
+	commands.insert("close", 0);
 	commands.insert("end", 0);
 }
 
@@ -67,6 +68,10 @@ void Command::Draw(const QVariantList &vars)
 	else if(command == QString("end"))
 	{
 		painter->drawPath(painterPath);
+	}
+	else if(command == QString("close"))
+	{
+		painterPath.closeSubpath();
 	}
 }
 

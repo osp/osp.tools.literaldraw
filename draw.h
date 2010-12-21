@@ -27,6 +27,10 @@ public:
 public slots:
     void updateScene();
 
+
+signals:
+    void posClick(double, double);
+
 private:
     Ui::Draw *ui;
 };

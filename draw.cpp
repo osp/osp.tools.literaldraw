@@ -18,6 +18,8 @@ Draw::Draw(QWidget *parent) :
     item = 0;
 
     ui->graphicsView->setAlignment(Qt::AlignLeft | Qt::AlignTop);
+
+    connect(ui->graphicsView, SIGNAL(posClick(double, double)), this, SIGNAL(posClick(double,double)));
 }
 
 Draw::~Draw()

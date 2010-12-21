@@ -20,6 +20,9 @@ public:
 private:
     Ui::Literal *ui;
 
+public slots:
+    void insertPoint(double x, double y);
+
 signals:
     void textChanged();
 };

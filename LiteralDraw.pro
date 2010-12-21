@@ -15,13 +15,15 @@ SOURCES += main.cpp\
     literal.cpp \
     draw.cpp \
     svgview.cpp \
-    command.cpp
+    command.cpp \
+    drawview.cpp
 
 HEADERS  += mainwindow.h \
     literal.h \
     draw.h \
     svgview.h \
-    command.h
+    command.h \
+    drawview.h
 
 FORMS    += mainwindow.ui \
     literal.ui \

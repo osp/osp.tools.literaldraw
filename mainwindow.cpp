@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	command = new Command(painter);
 
 	connect(ui->L, SIGNAL(textChanged()), this, SLOT(parseAndPaint()));
+	connect(ui->D, SIGNAL(posClick(double,double)), ui->L, SLOT(insertPoint(double,double)));
 }
 
 MainWindow::~MainWindow()

@@ -19,8 +19,16 @@
      <property name="orientation">
       <enum>Qt::Vertical</enum>
      </property>
-     <widget class="QPlainTextEdit" name="literalEdit"/>
-     <widget class="QTableWidget" name="graphicStateTable"/>
+     <widget class="QPlainTextEdit" name="literalEdit">
+      <property name="focusPolicy">
+       <enum>Qt::WheelFocus</enum>
+      </property>
+     </widget>
+     <widget class="QTableWidget" name="graphicStateTable">
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+     </widget>
     </widget>
    </item>
   </layout>

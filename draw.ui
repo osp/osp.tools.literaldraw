@@ -15,10 +15,21 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QGraphicsView" name="graphicsView"/>
+    <widget class="DrawView" name="graphicsView">
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DrawView</class>
+   <extends>QGraphicsView</extends>
+   <header>drawview.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
