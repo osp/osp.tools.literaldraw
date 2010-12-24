@@ -31,9 +31,12 @@ Draw::~Draw()
 void Draw::updateScene()
 {
 	if(item)
+	{
 		scene->removeItem(item);
+		delete item;
+	}
 	QPixmap p = QPixmap::fromImage(*pixmap);
 	item = scene->addPixmap(p);
 	item->setPos(0,0);
-	qDebug()<<scene<<item->scene();
+
 }

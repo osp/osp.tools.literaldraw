@@ -39,6 +39,8 @@ private:
 
 private slots:
 	void parseAndPaint();
+	void saveTxt();
+	void saveSVG();
 };
 
 #endif // MAINWINDOW_H

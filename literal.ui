@@ -24,7 +24,7 @@
        <enum>Qt::WheelFocus</enum>
       </property>
      </widget>
-     <widget class="QTableWidget" name="graphicStateTable">
+     <widget class="QTableView" name="table">
       <property name="focusPolicy">
        <enum>Qt::NoFocus</enum>
       </property>

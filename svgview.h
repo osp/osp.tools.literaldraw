@@ -15,6 +15,8 @@ public:
     explicit SvgView(QWidget *parent = 0);
     ~SvgView();
 
+    QString getSVG();
+
 public slots:
     void updateSvg(const QString& s);
 

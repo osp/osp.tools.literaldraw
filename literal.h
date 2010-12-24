@@ -3,28 +3,31 @@
 
 #include <QWidget>
 
+class LiteralModel;
+
 namespace Ui {
-    class Literal;
+	class Literal;
 }
 
 class Literal : public QWidget
 {
-    Q_OBJECT
-
+	Q_OBJECT
 public:
-    explicit Literal(QWidget *parent = 0);
-    ~Literal();
+	explicit Literal(QWidget *parent = 0);
+	~Literal();
 
-    QString text();
+	QString text();
+	void setModel(LiteralModel * m);
 
 private:
-    Ui::Literal *ui;
+	Ui::Literal *ui;
 
 public slots:
-    void insertPoint(double x, double y);
+	void insertPoint(double x, double y);
+	void updateNamesView();
 
 signals:
-    void textChanged();
+	void textChanged();
 };
 
 #endif // LITERAL_H

@@ -1,10 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "literalmodel.h"
+
 #include <QColor>
 #include <QPointF>
 #include <QPaintDevice>
 #include <QVariantList>
+#include <QFileDialog>
+#include <QDir>
+#include <QTextStream>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -13,10 +18,18 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->setupUi(this);
 
 	painter = new QPainter;
-	command = new Command(painter);
+	command = Command::getInstance();
+	command->setPainter(painter);
+
+	ui->L->setModel(new LiteralModel(command, this));
 
 	connect(ui->L, SIGNAL(textChanged()), this, SLOT(parseAndPaint()));
 	connect(ui->D, SIGNAL(posClick(double,double)), ui->L, SLOT(insertPoint(double,double)));
+
+	connect(ui->actionSave_Text, SIGNAL(triggered()), this, SLOT(saveTxt()));
+	connect(ui->actionSave_SVG, SIGNAL(triggered()), this, SLOT(saveSVG()));
+
+	connect(command, SIGNAL(namesChanged()), ui->L, SLOT(updateNamesView()));
 }
 
 MainWindow::~MainWindow()
@@ -63,3 +76,32 @@ void MainWindow::parseAndPaint()
 	delete svg;
 
 }
+
+void MainWindow::saveTxt()
+{
+	QString	fn(QFileDialog::getSaveFileName ( this,  QString("Save File"), QDir::homePath()));
+	if(fn.isEmpty())
+		return;
+
+	QFile f(fn);
+	if(f.open(QIODevice::WriteOnly))
+	{
+		f.write(ui->L->text().toUtf8());
+		f.close();
+	}
+}
+
+void MainWindow::saveSVG()
+{
+	QString	fn(QFileDialog::getSaveFileName ( this,  QString("Save SVG"), QDir::homePath()));
+	if(fn.isEmpty())
+		return;
+
+	QFile f(fn);
+	if(f.open(QIODevice::WriteOnly))
+	{
+		f.write(ui->S->getSVG().toUtf8());
+		f.close();
+	}
+}
+

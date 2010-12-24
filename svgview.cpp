@@ -18,3 +18,9 @@ void SvgView::updateSvg(const QString &s)
 {
 	ui->textBrowser->setPlainText(s);
 }
+
+
+QString SvgView::getSVG()
+{
+	return ui->textBrowser->toPlainText();
+}
