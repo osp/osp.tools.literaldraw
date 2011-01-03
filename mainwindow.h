@@ -39,6 +39,7 @@ private:
 
 private slots:
 	void parseAndPaint();
+	void loadText();
 	void saveTxt();
 	void saveSVG();
 };

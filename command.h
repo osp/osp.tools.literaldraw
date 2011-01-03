@@ -9,6 +9,7 @@
 #include <QVariantList>
 #include <QPainterPath>
 #include <QTime>
+#include <QImage>
 
 class Command : public QObject
 {
@@ -20,6 +21,9 @@ class Command : public QObject
 	QPainterPath painterPath;
 
 	QTime tDbg;
+
+	QMap<QString, QImage> imgCache;
+	bool skipImages;
 
 	QMap<QString, int> commands;
 	QMap<QString, QString> alias;
@@ -36,6 +40,7 @@ public:
 
 	const QMap<QString, QString>& getAliases() const{return alias;}
 	void setAlias(const QString& key, const QString& val){alias[key] = val;}
+	bool setSkipImages(bool b){skipImages = b;}
 
 signals:
 	void namesChanged();

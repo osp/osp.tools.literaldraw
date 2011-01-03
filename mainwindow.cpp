@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->L, SIGNAL(textChanged()), this, SLOT(parseAndPaint()));
 	connect(ui->D, SIGNAL(posClick(double,double)), ui->L, SLOT(insertPoint(double,double)));
 
+	connect(ui->actionLoad_Text, SIGNAL(triggered()), this, SLOT(loadText()));
 	connect(ui->actionSave_Text, SIGNAL(triggered()), this, SLOT(saveTxt()));
 	connect(ui->actionSave_SVG, SIGNAL(triggered()), this, SLOT(saveSVG()));
 
@@ -50,6 +51,10 @@ void MainWindow::parseAndPaint()
 	devices << svg << ui->D->pixmap;
 	foreach(QPaintDevice* pd, devices)
 	{
+		if(pd == svg)
+			command->setSkipImages(true);
+		else
+			command->setSkipImages(false);
 		painter->begin(pd);
 		painter->eraseRect(QRect(0,0,pd->width(),pd->height()));
 		QString text(ui->L->text());
@@ -77,6 +82,19 @@ void MainWindow::parseAndPaint()
 
 }
 
+void MainWindow::loadText()
+{
+	QString fn(QFileDialog::getOpenFileName(this, QString("Load Text"), QDir::homePath()));
+	if(fn.isEmpty())
+		return;
+
+	QFile f(fn);
+	if(f.open(QIODevice::ReadOnly))
+	{
+		ui->L->setText(f.readAll());
+	}
+}
+
 void MainWindow::saveTxt()
 {
 	QString	fn(QFileDialog::getSaveFileName ( this,  QString("Save File"), QDir::homePath()));
@@ -100,7 +118,34 @@ void MainWindow::saveSVG()
 	QFile f(fn);
 	if(f.open(QIODevice::WriteOnly))
 	{
-		f.write(ui->S->getSVG().toUtf8());
+		QByteArray ba;
+		buffer.setBuffer(&ba);
+		buffer.open(QIODevice::ReadWrite);
+		svg = new QSvgGenerator;
+		svg->setOutputDevice(&buffer);
+		svg->setSize(QSize(2000, 2000));
+		painter->begin(svg);
+		painter->eraseRect(QRect(0,0,svg->width(),svg->height()));
+		QString text(ui->L->text());
+		QStringList tl(text.split(QChar('\n'), QString::SkipEmptyParts));
+		QPainterPath pp;
+		command->setPP(pp);
+		painter->setRenderHint(QPainter::Antialiasing);
+		foreach(QString s, tl)
+		{
+			QStringList args(s.simplified().split(" ", QString::SkipEmptyParts));
+			QVariantList vl;
+			foreach(const QString& a, args)
+			{
+				vl << a;
+			}
+			command->Draw(vl);
+
+		}
+		painter->end();
+		buffer.close();
+		delete svg;
+		f.write(ba);
 		f.close();
 	}
 }

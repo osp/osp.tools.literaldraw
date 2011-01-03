@@ -17,6 +17,7 @@ public:
 	~Literal();
 
 	QString text();
+	void setText(const QString& text);
 	void setModel(LiteralModel * m);
 
 private:

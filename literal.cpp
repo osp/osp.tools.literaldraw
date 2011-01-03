@@ -30,6 +30,12 @@ QString Literal::text()
 	return ui->literalEdit->toPlainText();
 }
 
+void Literal::setText(const QString &text)
+{
+	ui->literalEdit->setPlainText(text);
+	emit textChanged();
+}
+
 
 void Literal::insertPoint(double x, double y)
 {

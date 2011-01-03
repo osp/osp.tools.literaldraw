@@ -2,6 +2,7 @@
 #define DRAWVIEW_H
 
 #include <QGraphicsView>
+#include <QPoint>
 
 class DrawView : public QGraphicsView
 {
@@ -11,8 +12,14 @@ public:
 
 protected:
 	void mouseReleaseEvent ( QMouseEvent * event );
+	void mouseMoveEvent(QMouseEvent *event);
+	void resizeEvent(QResizeEvent *event);
+
 signals:
 	void posClick(double, double);
+	void posChanged(QPoint);
+	void sizeChanged(int);
+
 public slots:
 
 };

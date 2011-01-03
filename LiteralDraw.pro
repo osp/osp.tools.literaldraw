@@ -32,4 +32,4 @@ FORMS    += mainwindow.ui \
     draw.ui \
     svgview.ui
 
-CONFIG  += debug
+CONFIG  += app_bundle
