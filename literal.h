@@ -2,6 +2,7 @@
 #define LITERAL_H
 
 #include <QWidget>
+#include <QStringList>
 
 class LiteralModel;
 
@@ -17,6 +18,8 @@ public:
 	~Literal();
 
 	QString text();
+	QStringList lines();
+	int currentLine();
 	void setText(const QString& text);
 	void setModel(LiteralModel * m);
 
@@ -29,6 +32,7 @@ public slots:
 
 signals:
 	void textChanged();
+	void posChanged();
 };
 
 #endif // LITERAL_H

@@ -23,8 +23,8 @@ Command::Command():
 	commands.insert("text", 1);
 	commands.insert("image", 1);
 
-	foreach(QString c, commands.keys())
-		alias.insert(c,c);
+	clearAlias();
+
 }
 
 Command * Command::getInstance()
@@ -32,6 +32,14 @@ Command * Command::getInstance()
 	if(!instance)
 		instance = new Command;
 	return instance;
+}
+
+void Command::clearAlias()
+{
+	alias.clear();
+
+	foreach(QString c, commands.keys())
+		alias.insert(c,c);
 }
 
 QString Command::getFromAlias(const QString &a) const
@@ -57,8 +65,30 @@ bool Command::checkVars(const QVariantList &vars)
 	return false;
 }
 
-void Command::Draw(const QVariantList &vars)
+
+void Command::highlightPre(QPointF& point)
 {
+	QColor hcol(Qt::green);
+	painter->drawPath(painterPath);
+	point = painterPath.currentPosition();
+	painterPath = QPainterPath();
+	painterPath.moveTo(point);
+	painter->setPen(hcol);
+	painter->setBrush(QBrush(hcol));
+}
+
+void Command::highlightPost(QPointF& point)
+{
+	painter->drawPath(painterPath);
+	point = painterPath.currentPosition();
+	painterPath = QPainterPath();
+	painterPath.moveTo(point);
+}
+
+
+void Command::Draw(const QVariantList &vars, bool higlight)
+{
+
 	int A, B, C;
 	tDbg.restart();
 	if(!checkVars(vars))
@@ -73,13 +103,49 @@ void Command::Draw(const QVariantList &vars)
 	}
 	else if(command == QString("line"))
 	{
+		if(higlight)
+		{
+			QPointF p0(painterPath.currentPosition());
+			QPointF p1(vars.at(1).toDouble(), vars.at(2).toDouble());
+			QLineF r(p0,p1);
+			foreach(QTransform t, transforms)
+			{
+				r = t.map(r);
+			}
+			highlightPath->moveTo(r.x1(),r.y1());
+			highlightPath->lineTo(r.x2(),r.y2());
+
+		}
 		painterPath.lineTo(vars.at(1).toDouble(), vars.at(2).toDouble());
 	}
 	else if(command == QString("cubic"))
 	{
+		if(higlight)
+		{
+			QPainterPath path;
+			QPointF p0(painterPath.currentPosition());
+			QPointF c0(vars.at(1).toDouble(), vars.at(2).toDouble());
+			QPointF c1(vars.at(3).toDouble(), vars.at(4).toDouble());
+			QPointF p1(vars.at(5).toDouble(), vars.at(6).toDouble());
+			path.moveTo(p0);
+			path.lineTo(c0);
+			path.moveTo(p0);
+			path.cubicTo(vars.at(1).toDouble(), vars.at(2).toDouble(),
+					      vars.at(3).toDouble(), vars.at(4).toDouble(),
+					      vars.at(5).toDouble(), vars.at(6).toDouble());
+			path.moveTo(p1);
+			path.lineTo(c1);
+			foreach(QTransform t, transforms)
+			{
+				path = t.map(path);
+			}
+			highlightPath->addPath(path);
+
+		}
 		painterPath.cubicTo(vars.at(1).toDouble(), vars.at(2).toDouble(),
 				    vars.at(3).toDouble(), vars.at(4).toDouble(),
 				    vars.at(5).toDouble(), vars.at(6).toDouble());
+
 	}
 	else if(command == QString("fill"))
 	{
@@ -110,6 +176,7 @@ void Command::Draw(const QVariantList &vars)
 			     vars.at(3).toDouble(), vars.at(4).toDouble(),
 			     vars.at(5).toDouble(), vars.at(6).toDouble());
 		painter->setWorldTransform(t, true);
+		transforms << t;
 	}
 	else if(command == QString("end"))
 	{
@@ -144,7 +211,20 @@ void Command::Draw(const QVariantList &vars)
 		{
 			painter->drawText(QRectF(res.topRight(), QSizeF(10000.0, 10000.0)), Qt::AlignLeft | Qt::AlignTop , vars.at(i).toString() + QString(" "), &res );
 		}
+		if(higlight)
+		{
+			curPos = painterPath.currentPosition();
+			QRectF r(curPos.x(),curPos.y(),
+					  res.right() - curPos.x(),res.bottom() - curPos.y());
+			foreach(QTransform t, transforms)
+			{
+				r = t.mapRect(r);
+			}
+			highlightPath->addRect(r);
+
+		}
 		painterPath.moveTo(painterPath.currentPosition().x(), res.bottom());
+
 	}
 	else if(command == QString("image")
 		&& !skipImages)
@@ -167,9 +247,31 @@ void Command::Draw(const QVariantList &vars)
 			}
 			else
 				painter->drawImage(painterPath.currentPosition(), img);
+			if(higlight)
+			{
+				QRectF r;
+				QPointF curPos = painterPath.currentPosition();
+				if(vars.count() >= 4)
+				{
+					QImage simg(img.scaled(vars.at(2).toInt(),vars.at(3).toInt()));
+					r = QRectF(curPos.x(),curPos.y(),
+						  simg.width(), simg.height());
+				}
+				else
+					r = QRectF(curPos.x(),curPos.y(),
+						   img.width(), img.height());
+				foreach(QTransform t, transforms)
+				{
+					r = t.mapRect(r);
+				}
+				highlightPath->addRect(r);
+
+			}
 		}
 	}
 	B = tDbg.elapsed() - A;
+
+
 //	qDebug()<<"A"<<A<<"B"<<B;
 }
 

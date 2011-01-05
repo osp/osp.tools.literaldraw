@@ -30,10 +30,15 @@ public:
     QGraphicsPathItem * frameItem;
     QGraphicsLineItem * horizontalLine;
     QGraphicsLineItem * verticalLine;
+    QGraphicsPathItem * crossItem;
+    QGraphicsPathItem * highlightItem;
+
+    QPainterPath * getHightlightPath();
 
 private slots:
     void moveCoord(int);
     void updateCoord(QPoint pos);
+    void moveCross(double x, double y);
 
 public slots:
     void updateScene();
@@ -44,6 +49,7 @@ signals:
 
 private:
     Ui::Draw *ui;
+    QPainterPath * highlightPath;
 };
 
 #endif // DRAW_H

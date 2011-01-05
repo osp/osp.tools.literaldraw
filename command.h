@@ -10,6 +10,9 @@
 #include <QPainterPath>
 #include <QTime>
 #include <QImage>
+#include <QPointF>
+#include <QList>
+#include <QTransform>
 
 class Command : public QObject
 {
@@ -19,8 +22,11 @@ class Command : public QObject
 	Command();
 	QPainter * painter;
 	QPainterPath painterPath;
+	QPainterPath  * highlightPath;
 
 	QTime tDbg;
+
+	QList<QTransform> transforms;
 
 	QMap<QString, QImage> imgCache;
 	bool skipImages;
@@ -29,18 +35,27 @@ class Command : public QObject
 	QMap<QString, QString> alias;
 	QString getFromAlias(const QString& a) const;
 	bool checkVars(const QVariantList& vars);
+
+	void highlightPre(QPointF& point);
+	void highlightPost(QPointF& point);
 public:
 	static Command * getInstance();
+	void clearAlias();
 	void setPainter(QPainter * p){painter = p;}
 	void setPP(QPainterPath& pp){painterPath = pp;}
 	QPainterPath& PP(){return painterPath;}
 
-	void Draw(const QVariantList& vars);
+	void setHighlightPP(QPainterPath *pp){highlightPath = pp;}
+
+	void Draw(const QVariantList& vars, bool higlight = false);
 //	void GraphicState(const QVariantList& vars);
 
 	const QMap<QString, QString>& getAliases() const{return alias;}
 	void setAlias(const QString& key, const QString& val){alias[key] = val;}
 	bool setSkipImages(bool b){skipImages = b;}
+
+	void clearTrans(){transforms.clear();}
+	QList<QTransform> getTrans(){return transforms;}
 
 signals:
 	void namesChanged();

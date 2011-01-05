@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->L->setModel(new LiteralModel(command, this));
 
 	connect(ui->L, SIGNAL(textChanged()), this, SLOT(parseAndPaint()));
+	connect(ui->L, SIGNAL(posChanged()), this, SLOT(parseAndPaint()));
 	connect(ui->D, SIGNAL(posClick(double,double)), ui->L, SLOT(insertPoint(double,double)));
 
 	connect(ui->actionLoad_Text, SIGNAL(triggered()), this, SLOT(loadText()));
@@ -55,23 +56,28 @@ void MainWindow::parseAndPaint()
 			command->setSkipImages(true);
 		else
 			command->setSkipImages(false);
+		command->clearTrans();
+		command->setHighlightPP(ui->D->getHightlightPath());
 		painter->begin(pd);
 		painter->eraseRect(QRect(0,0,pd->width(),pd->height()));
-		QString text(ui->L->text());
-		QStringList tl(text.split(QChar('\n'), QString::SkipEmptyParts));
 		QPainterPath pp;
 		command->setPP(pp);
 		painter->setRenderHint(QPainter::Antialiasing);
-		foreach(QString s, tl)
+		int cline(ui->L->currentLine());
+		int lc(0);
+		foreach(QString s, ui->L->lines())
 		{
-			QStringList args(s.simplified().split(" ", QString::SkipEmptyParts));
-			QVariantList vl;
-			foreach(const QString& a, args)
+			if(!s.isEmpty())
 			{
-				vl << a;
+				QStringList args(s.simplified().split(" ", QString::SkipEmptyParts));
+				QVariantList vl;
+				foreach(const QString& a, args)
+				{
+					vl << a;
+				}
+				command->Draw(vl, lc == cline ? true : false);
 			}
-			command->Draw(vl);
-
+			++lc;
 		}
 		painter->end();
 	}
@@ -91,6 +97,7 @@ void MainWindow::loadText()
 	QFile f(fn);
 	if(f.open(QIODevice::ReadOnly))
 	{
+		command->clearAlias();
 		ui->L->setText(f.readAll());
 	}
 }
