@@ -99,6 +99,21 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	QPointF curPos;
 	if(command == QString("move"))
 	{
+		if(higlight)
+		{
+			QPointF p0(painterPath.currentPosition());
+			QPointF p1(vars.at(1).toDouble(), vars.at(2).toDouble());
+			QLineF r(p0,p1);
+			foreach(QTransform t, transforms)
+			{
+				r = t.map(r);
+			}
+			highlightPath->moveTo(r.x1(),r.y1());
+			highlightPath->lineTo(r.x2(),r.y2());
+			QRectF target(r.x2() - 4, r.y2() - 4, 8 , 8);
+			highlightPath->addEllipse(target);
+
+		}
 		painterPath.moveTo(vars.at(1).toDouble(), vars.at(2).toDouble());
 	}
 	else if(command == QString("line"))
