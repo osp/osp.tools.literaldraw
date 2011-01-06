@@ -24,6 +24,8 @@ class Command : public QObject
 	QPainterPath painterPath;
 	QPainterPath  * highlightPath;
 
+	bool coordAbsolute;
+
 	QTime tDbg;
 
 	QList<QTransform> transforms;
@@ -56,6 +58,8 @@ public:
 
 	void clearTrans(){transforms.clear();}
 	QList<QTransform> getTrans(){return transforms;}
+
+	void resetAbsolute(){coordAbsolute = true;}
 
 signals:
 	void namesChanged();

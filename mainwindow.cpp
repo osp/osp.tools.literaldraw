@@ -58,6 +58,7 @@ void MainWindow::parseAndPaint()
 			command->setSkipImages(false);
 		command->clearTrans();
 		command->setHighlightPP(ui->D->getHightlightPath());
+		command->resetAbsolute();
 		painter->begin(pd);
 		painter->eraseRect(QRect(0,0,pd->width(),pd->height()));
 		QPainterPath pp;
@@ -137,6 +138,8 @@ void MainWindow::saveSVG()
 		QStringList tl(text.split(QChar('\n'), QString::SkipEmptyParts));
 		QPainterPath pp;
 		command->setPP(pp);
+		command->clearTrans();
+		command->resetAbsolute();
 		painter->setRenderHint(QPainter::Antialiasing);
 		foreach(QString s, tl)
 		{

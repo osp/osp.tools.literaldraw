@@ -10,6 +10,8 @@ Command * Command::instance = 0;
 Command::Command():
 	QObject(0)
 {
+	coordAbsolute = true;
+
 	commands.insert("move", 2);
 	commands.insert("line", 2);
 	commands.insert("cubic", 6);
@@ -22,6 +24,7 @@ Command::Command():
 	commands.insert("font", 4);
 	commands.insert("text", 1);
 	commands.insert("image", 1);
+	commands.insert("absolute", 1);
 
 	clearAlias();
 
@@ -96,13 +99,16 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	QString command(getFromAlias(vars.first().toString()));
 
 	A = tDbg.elapsed();
-	QPointF curPos;
+	const QPointF curPos(painterPath.currentPosition());
 	if(command == QString("move"))
 	{
+		QPointF target(vars.at(1).toDouble(), vars.at(2).toDouble());
+		if(!coordAbsolute)
+			target = curPos + target;
 		if(higlight)
 		{
-			QPointF p0(painterPath.currentPosition());
-			QPointF p1(vars.at(1).toDouble(), vars.at(2).toDouble());
+			QPointF p0(curPos);
+			QPointF p1(target);
 			QLineF r(p0,p1);
 			foreach(QTransform t, transforms)
 			{
@@ -110,18 +116,21 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			}
 			highlightPath->moveTo(r.x1(),r.y1());
 			highlightPath->lineTo(r.x2(),r.y2());
-			QRectF target(r.x2() - 4, r.y2() - 4, 8 , 8);
-			highlightPath->addEllipse(target);
+			QRectF targetRect(r.x2() - 4, r.y2() - 4, 8 , 8);
+			highlightPath->addEllipse(targetRect);
 
 		}
 		painterPath.moveTo(vars.at(1).toDouble(), vars.at(2).toDouble());
 	}
 	else if(command == QString("line"))
 	{
+		QPointF target(vars.at(1).toDouble(), vars.at(2).toDouble());
+		if(!coordAbsolute)
+			target = curPos + target;
 		if(higlight)
 		{
-			QPointF p0(painterPath.currentPosition());
-			QPointF p1(vars.at(1).toDouble(), vars.at(2).toDouble());
+			QPointF p0(curPos);
+			QPointF p1(target);
 			QLineF r(p0,p1);
 			foreach(QTransform t, transforms)
 			{
@@ -131,25 +140,28 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			highlightPath->lineTo(r.x2(),r.y2());
 
 		}
-		painterPath.lineTo(vars.at(1).toDouble(), vars.at(2).toDouble());
+		painterPath.lineTo(target);
 	}
 	else if(command == QString("cubic"))
 	{
+		QPointF target(vars.at(5).toDouble(), vars.at(6).toDouble());
+		QPointF c1(vars.at(1).toDouble(), vars.at(2).toDouble());
+		QPointF c2(vars.at(3).toDouble(), vars.at(4).toDouble());
+		if(!coordAbsolute)
+		{
+			target = curPos + target;
+			c1 = c1 + curPos;
+			c2 = c2 + curPos;
+		}
 		if(higlight)
 		{
 			QPainterPath path;
-			QPointF p0(painterPath.currentPosition());
-			QPointF c0(vars.at(1).toDouble(), vars.at(2).toDouble());
-			QPointF c1(vars.at(3).toDouble(), vars.at(4).toDouble());
-			QPointF p1(vars.at(5).toDouble(), vars.at(6).toDouble());
-			path.moveTo(p0);
-			path.lineTo(c0);
-			path.moveTo(p0);
-			path.cubicTo(vars.at(1).toDouble(), vars.at(2).toDouble(),
-					      vars.at(3).toDouble(), vars.at(4).toDouble(),
-					      vars.at(5).toDouble(), vars.at(6).toDouble());
-			path.moveTo(p1);
+			path.moveTo(curPos);
 			path.lineTo(c1);
+			path.moveTo(curPos);
+			path.cubicTo(c1,c2,target);
+//			path.moveTo(p1);
+			path.lineTo(c2);
 			foreach(QTransform t, transforms)
 			{
 				path = t.map(path);
@@ -157,15 +169,12 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			highlightPath->addPath(path);
 
 		}
-		painterPath.cubicTo(vars.at(1).toDouble(), vars.at(2).toDouble(),
-				    vars.at(3).toDouble(), vars.at(4).toDouble(),
-				    vars.at(5).toDouble(), vars.at(6).toDouble());
+		painterPath.cubicTo(c1,c2,target);
 
 	}
 	else if(command == QString("fill"))
 	{
 		painter->drawPath(painterPath);
-		curPos = painterPath.currentPosition();
 		painterPath = QPainterPath();
 		painterPath.moveTo(curPos);
 		QColor c(vars.at(1).toInt(), vars.at(2).toInt(), vars.at(3).toInt());
@@ -174,7 +183,6 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	else if(command == QString("stroke"))
 	{
 		painter->drawPath(painterPath);
-		curPos = painterPath.currentPosition();
 		painterPath = QPainterPath();
 		painterPath.moveTo(curPos);
 		QColor c(vars.at(1).toInt(), vars.at(2).toInt(), vars.at(3).toInt());
@@ -184,7 +192,6 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	else if(command == QString("transform"))
 	{
 		painter->drawPath(painterPath);
-		curPos = painterPath.currentPosition();
 		painterPath = QPainterPath();
 		painterPath.moveTo(curPos);
 		QTransform t(vars.at(1).toDouble(), vars.at(2).toDouble(),
@@ -228,7 +235,6 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		}
 		if(higlight)
 		{
-			curPos = painterPath.currentPosition();
 			QRectF r(curPos.x(),curPos.y(),
 					  res.right() - curPos.x(),res.bottom() - curPos.y());
 			foreach(QTransform t, transforms)
@@ -283,6 +289,10 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 
 			}
 		}
+	}
+	else if(command == QString("absolute"))
+	{
+		coordAbsolute = vars.at(1).toBool();
 	}
 	B = tDbg.elapsed() - A;
 
