@@ -13,11 +13,11 @@ Draw::Draw(QWidget *parent) :
     ui->setupUi(this);
 
     highlightPath = 0;
-    QRect r(0,0,2000, 2000);
+    QRect r(0,0,10000, 10000);
     scene = new QGraphicsScene(r);
     ui->graphicsView->setScene(scene);
 
-    pixmap = new QImage(r.size(), QImage::Format_ARGB32);
+    pixmap = new QImage(ui->graphicsView->size(), QImage::Format_ARGB32);
     pixmap->fill(qRgb(255,255,255));
     item = 0;
 
@@ -59,6 +59,7 @@ Draw::Draw(QWidget *parent) :
     connect(ui->graphicsView->verticalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(moveCoord(int)));
     connect(ui->graphicsView->horizontalScrollBar(), SIGNAL(valueChanged(int)), this, SLOT(moveCoord(int)));
     connect(ui->graphicsView, SIGNAL(sizeChanged(int)), this, SLOT(moveCoord(int)));
+    connect(ui->graphicsView, SIGNAL(sizeChanged(int)), this, SLOT(updateSize(int)));
 
     connect(ui->graphicsView, SIGNAL(posChanged(QPoint)), this, SLOT(updateCoord(QPoint)));
 
@@ -81,19 +82,28 @@ QPainterPath * Draw::getHightlightPath()
 
 void Draw::updateScene()
 {
+	QPointF itemPos;
 	if(item)
 	{
+		itemPos = item->pos();
 		scene->removeItem(item);
 		delete item;
 	}
 	QPixmap p = QPixmap::fromImage(*pixmap);
 	item = scene->addPixmap(p);
-	item->setPos(0,0);
+	item->setPos(itemPos);
 	if(highlightPath)
 	{
 		highlightItem->setPath(*highlightPath);
 		qDebug()<< "HL" << (*highlightPath);
 	}
+}
+
+void Draw::updateSize(int)
+{
+	delete pixmap;
+	pixmap = new QImage(ui->graphicsView->size(), QImage::Format_ARGB32);
+	emit somethingChange();
 }
 
 void Draw::moveCross(double x, double y)
@@ -111,6 +121,10 @@ void Draw::moveCoord(int)
 	coordItem->setPos(ui->graphicsView->mapToScene(x,y));
 	QPoint c(QCursor::pos());
 	updateCoord(ui->graphicsView->mapFromGlobal(c));
+	pixmapShift = ui->graphicsView->mapToScene(QPoint(0,0));
+	if(item)
+		item->setPos(pixmapShift);
+	emit somethingChange();
 }
 
 void Draw::updateCoord(QPoint pos)

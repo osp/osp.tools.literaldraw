@@ -1,0 +1,154 @@
+# Documentation of the program
+# This document is intended to be seen in the program itself
+transform 1 0 0 1 84 0
+move 94.00 74.00 
+font 22 100 0 NotCourierSans
+stroke 20 0 200 2
+text Documentation of the program
+stroke 0 0 0 1
+font 12 40 0 DejaVu Sans
+move 94.00 141.00 
+text This program is intended to perform drawing operations by means of text writing. 
+text As of now, the text is composed of keywords followed by arguments. The keywords 
+text are  aliased to form a kind of dictionary. The program handles the output of the text
+text at screen and to an SVG text that you can save back on disk.
+text This documentation describes the use of each non-aliased keyword.
+
+move  0.00 270.00  
+font 16 0 0 NotCourierSans
+textblock 90 right absolute
+font 12 40 0 DejaVu Sans
+move 94.00 275.00
+text boolean
+text :
+textblock 350 justify By default, coordinates are relatives to the top left corner of the image. you can change this behaviour by setting this attribute to false, in which case coordinates that you type will be considered relative to the current position.
+
+move  0.00 396  
+font 16 0 0 NotCourierSans
+textblock 90 right change
+font 12 40 0 DejaVu Sans
+move 94.00 401.00
+text string string
+text :
+textblock 350 justify Set an alias for a keyword, the first argument is the keyword you want to change and the second is its new value. Aliases are permanent.
+
+move  0.00 520  
+font 16 0 0 NotCourierSans
+textblock 90 right close
+font 12 40 0 DejaVu Sans
+move 94.00 525
+text -
+text :
+textblock 350 justify This command has no argument, it closes the current contour.
+
+move  0.00 620  
+font 16 0 0 NotCourierSans
+textblock 90 right cubic
+font 12 40 0 DejaVu Sans
+move 94.00 625
+text number number number number number number
+text :
+textblock 350 justify This command draws a curve from the current point to the specified endpoint. The two first arguments are coordinates of the first control point, arguments 3 and 4 are the coordinates of the second control point and the last 2 arguments are those of the endpoint.
+
+#exemple
+move 549.00 673.00 
+cubic 600.00 610.00  716.00 720.00  770.00 678.00 
+end
+
+move  0.00 770  
+font 16 0 0 NotCourierSans
+textblock 90 right end
+font 12 40 0 DejaVu Sans
+move 94.00 775
+text -
+text :
+textblock 350 justify This command has no argument. it finishes a subcontour and triggers a paint event.
+
+move  0.00 870  
+font 16 0 0 NotCourierSans
+textblock 90 right fill
+font 12 40 0 DejaVu Sans
+move 94.00 875
+text number number number
+text :
+textblock 350 justify This command sets the RGB values of the current fill color. Note that values, to be valid, must be comprised between 0 and 255. Default fill color is set to none.
+
+move  0.00 980  
+font 16 0 0 NotCourierSans
+textblock 90 right font
+font 12 40 0 DejaVu Sans
+move 94.00 985
+text number number boolean strings
+text :
+textblock 350 justify This command sets the current font. first argument is the font size, second is the weight (values are the same as in CSS syntax, 0 for ultra light and 100 for ultra black), the third, if true, will try to select the italic variant. Remaining strings are the family name of the typeface.
+
+move  0.00 1120  
+font 16 0 0 NotCourierSans
+textblock 90 right image
+font 12 40 0 DejaVu Sans
+move 94.00 1125
+text string [number number]
+text :
+textblock 350 justify This command inserts an  image at the current position. The optional last arguments are the width and height of the image, if they're not given the sive of the image will be such that 1 pixel of the image equals 1 unit of the output device.
+
+move  0.00 1260  
+font 16 0 0 NotCourierSans
+textblock 90 right line
+font 12 40 0 DejaVu Sans
+move 94.00 1265
+text number number
+text :
+textblock 350 justify This command draws a line to the coordinates given in argument.
+
+#exemple 
+move  550.00 1305.00  
+line  770.00 1271.00  
+end
+
+move  0.00 1350  
+font 16 0 0 NotCourierSans
+textblock 90 right move
+font 12 40 0 DejaVu Sans
+move 94.00 1355
+text number number
+text :
+textblock 350 justify This command changes the current position to the  coordinates given in argument.
+
+move  0.00 1440  
+font 16 0 0 NotCourierSans
+textblock 90 right stroke
+font 12 40 0 DejaVu Sans
+move 94.00 1445
+text number number number number
+text :
+textblock 350 justify This command sets the current stroke to the color expressed in RGB as given by the 3 first argument. The last argument sets the width of the stroke. Note that 0 doesn't actually set the width to 0, you can instead give a very small value such as 0.00001. Default stroke is set to black with a width of 1.
+
+move  0.00 1580  
+font 16 0 0 NotCourierSans
+textblock 90 right text
+font 12 40 0 DejaVu Sans
+move 94.00 1585
+text strings
+text :
+textblock 350 justify This command draws the text given in argument.
+
+move  0.00 1660  
+font 16 0 0 NotCourierSans
+textblock 90 right textblock
+font 12 40 0 DejaVu Sans
+move 94.00 1665
+text number string strings
+text :
+textblock 350 justify This command draws  a block of text for which width is given with the first argument, alignement as the second argument (amongst right, left, center, justify) and text is built on the remaining strings.
+
+move  0.00 1780  
+font 16 0 0 NotCourierSans
+textblock 90 right transform
+font 12 40 0 DejaVu Sans
+move 94.00 1785
+text number number number number number number 
+text :
+textblock 350 justify This command multiplies the current transformation matrix with the one given in argument. The matrix is expressed as usualy seen in PDF, like "1 0 0 1 0 0" for the identity.
+
+
+

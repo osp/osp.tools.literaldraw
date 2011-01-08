@@ -21,6 +21,7 @@ void DrawView::mouseMoveEvent(QMouseEvent *event)
 
 void DrawView::resizeEvent(QResizeEvent *event)
 {
+	QGraphicsView::resizeEvent(event);
 	emit sizeChanged(0);
 //	QGraphicsView::resizeEvent(event);
 }

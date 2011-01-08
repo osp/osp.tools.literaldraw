@@ -35,10 +35,13 @@ public:
 
     QPainterPath * getHightlightPath();
 
+    QPointF pixmapShift;
+
 private slots:
     void moveCoord(int);
     void updateCoord(QPoint pos);
     void moveCross(double x, double y);
+    void updateSize(int);
 
 public slots:
     void updateScene();
@@ -46,6 +49,7 @@ public slots:
 
 signals:
     void posClick(double, double);
+    void somethingChange();
 
 private:
     Ui::Draw *ui;

@@ -53,7 +53,7 @@ public:
 //	void GraphicState(const QVariantList& vars);
 
 	const QMap<QString, QString>& getAliases() const{return alias;}
-	void setAlias(const QString& key, const QString& val){alias[key] = val;}
+	void setAlias(const QString& key, const QString& val);
 	bool setSkipImages(bool b){skipImages = b;}
 
 	void clearTrans(){transforms.clear();}

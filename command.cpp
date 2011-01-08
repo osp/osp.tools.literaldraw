@@ -5,6 +5,7 @@
 #include <QBrush>
 #include <QDebug>
 #include <QFont>
+#include <QFile>
 
 Command * Command::instance = 0;
 Command::Command():
@@ -23,6 +24,7 @@ Command::Command():
 	commands.insert("change", 2);
 	commands.insert("font", 4);
 	commands.insert("text", 1);
+	commands.insert("textblock", 3);
 	commands.insert("image", 1);
 	commands.insert("absolute", 1);
 
@@ -43,6 +45,12 @@ void Command::clearAlias()
 
 	foreach(QString c, commands.keys())
 		alias.insert(c,c);
+}
+
+void Command::setAlias(const QString &key, const QString &val)
+{
+	if(alias.contains(key))
+		alias[key] = val;
 }
 
 QString Command::getFromAlias(const QString &a) const
@@ -178,6 +186,8 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		painterPath = QPainterPath();
 		painterPath.moveTo(curPos);
 		QColor c(vars.at(1).toInt(), vars.at(2).toInt(), vars.at(3).toInt());
+		if(vars.count() == 5)
+			c.setAlpha(vars.at(4).toInt());
 		painter->setBrush(c);
 	}
 	else if(command == QString("stroke"))
@@ -186,6 +196,8 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		painterPath = QPainterPath();
 		painterPath.moveTo(curPos);
 		QColor c(vars.at(1).toInt(), vars.at(2).toInt(), vars.at(3).toInt());
+		if(vars.count() == 6)
+			c.setAlpha(vars.at(5).toInt());
 		double width(vars.at(4).toDouble());
 		painter->setPen(QPen(QBrush(c), width));
 	}
@@ -228,15 +240,23 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	}
 	else if(command == QString("text"))
 	{
-		QRectF res(painterPath.currentPosition(), QSizeF(0,0));
+		QRect res;
+		QString text;
+		bool first(true);
 		for(int i(1); i < vars.count(); ++i)
 		{
-			painter->drawText(QRectF(res.topRight(), QSizeF(10000.0, 10000.0)), Qt::AlignLeft | Qt::AlignTop , vars.at(i).toString() + QString(" "), &res );
+			if(first)
+			{
+				first = false;
+				text +=  vars.at(i).toString();
+			}
+			else
+				text +=  QString(" ") + vars.at(i).toString();
 		}
+		painter->drawText(qRound(curPos.x()), qRound(curPos.y()), 99999, 99999, Qt::AlignLeft | Qt::AlignTop ,text , &res );
 		if(higlight)
 		{
-			QRectF r(curPos.x(),curPos.y(),
-					  res.right() - curPos.x(),res.bottom() - curPos.y());
+			QRectF r(res);
 			foreach(QTransform t, transforms)
 			{
 				r = t.mapRect(r);
@@ -244,49 +264,90 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			highlightPath->addRect(r);
 
 		}
-		painterPath.moveTo(painterPath.currentPosition().x(), res.bottom());
+		painterPath.moveTo(curPos.x(), res.bottom());
+
+	}
+	else if(command == QString("textblock"))
+	{
+		int width(vars.at(1).toDouble());
+		Qt::Alignment align(Qt::AlignLeft);
+		QString ua(vars.at(2).toString());
+		if(ua == QString("right"))
+			align = Qt::AlignRight;
+		else if(ua == QString("center"))
+			align = Qt::AlignCenter;
+		else if(ua == QString("justify"))
+			align = Qt::AlignJustify;
+		QRect res;
+		QString text;
+		bool first(true);
+		for(int i(3); i < vars.count(); ++i)
+		{
+			if(first)
+			{
+				first = false;
+				text +=  vars.at(i).toString();
+			}
+			else
+				text +=  QString(" ") + vars.at(i).toString();
+		}
+		painter->drawText(qRound(curPos.x()), qRound(curPos.y()), width, 99999, align | Qt::AlignTop | Qt::TextWordWrap , text , &res );
+		if(higlight)
+		{
+			QRectF r(res);
+			foreach(QTransform t, transforms)
+			{
+				r = t.mapRect(r);
+			}
+			highlightPath->addRect(r);
+
+		}
+		painterPath.moveTo(curPos.x(), res.bottom());
 
 	}
 	else if(command == QString("image")
 		&& !skipImages)
-	{
+		{
 		QString imgFile(vars.at(1).toString());
-		QImage img;
-		if(imgCache.contains(imgFile))
-			img = imgCache.value(imgFile);
-		else
+		if(QFile::exists(imgFile))
 		{
-			img.load(imgFile);
-			if(!img.isNull())
-				imgCache.insert(imgFile, img);
-		}
-		if(!img.isNull())
-		{
-			if(vars.count() >= 4)
-			{
-				painter->drawImage(painterPath.currentPosition(), img.scaled(vars.at(2).toInt(),vars.at(3).toInt()));
-			}
+			QImage img;
+			if(imgCache.contains(imgFile))
+				img = imgCache.value(imgFile);
 			else
-				painter->drawImage(painterPath.currentPosition(), img);
-			if(higlight)
 			{
-				QRectF r;
-				QPointF curPos = painterPath.currentPosition();
+				img.load(imgFile);
+				if(!img.isNull())
+					imgCache.insert(imgFile, img);
+			}
+			if(!img.isNull())
+			{
 				if(vars.count() >= 4)
 				{
-					QImage simg(img.scaled(vars.at(2).toInt(),vars.at(3).toInt()));
-					r = QRectF(curPos.x(),curPos.y(),
-						  simg.width(), simg.height());
+					painter->drawImage(painterPath.currentPosition(), img.scaled(vars.at(2).toInt(),vars.at(3).toInt()));
 				}
 				else
-					r = QRectF(curPos.x(),curPos.y(),
-						   img.width(), img.height());
-				foreach(QTransform t, transforms)
+					painter->drawImage(painterPath.currentPosition(), img);
+				if(higlight)
 				{
-					r = t.mapRect(r);
-				}
-				highlightPath->addRect(r);
+					QRectF r;
+					QPointF curPos = painterPath.currentPosition();
+					if(vars.count() >= 4)
+					{
+						QImage simg(img.scaled(vars.at(2).toInt(),vars.at(3).toInt()));
+						r = QRectF(curPos.x(),curPos.y(),
+							   simg.width(), simg.height());
+					}
+					else
+						r = QRectF(curPos.x(),curPos.y(),
+							   img.width(), img.height());
+					foreach(QTransform t, transforms)
+					{
+						r = t.mapRect(r);
+					}
+					highlightPath->addRect(r);
 
+				}
 			}
 		}
 	}

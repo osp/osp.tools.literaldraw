@@ -37,10 +37,14 @@ private:
 
 	Command * command;
 
+	QString currentFilename;
+
 private slots:
 	void parseAndPaint();
+	void newText();
 	void loadText();
 	void saveTxt();
+	void saveTxtAs();
 	void saveSVG();
 };
 

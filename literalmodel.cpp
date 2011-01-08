@@ -39,10 +39,12 @@ bool LiteralModel::setData(const QModelIndex &index, const QVariant &value, int 
 {
 	if(!index.isValid())
 		return false;
-	QList<QString> values(command->getAliases().values());
-	QString v(values.at(index.row()));
+	QList<QString> keys(command->getAliases().keys());
+	QString k(keys.at(index.row()));
+//	QList<QString> values(command->getAliases().values());
+//	QString v(values.at(index.row()));
 
-	command->setAlias(v, value.toString());
+	command->setAlias(k, value.toString());
 	return true;
 }
 

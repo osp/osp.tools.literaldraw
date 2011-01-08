@@ -25,10 +25,13 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	connect(ui->L, SIGNAL(textChanged()), this, SLOT(parseAndPaint()));
 	connect(ui->L, SIGNAL(posChanged()), this, SLOT(parseAndPaint()));
+	connect(ui->D, SIGNAL(somethingChange()), this, SLOT(parseAndPaint()));
 	connect(ui->D, SIGNAL(posClick(double,double)), ui->L, SLOT(insertPoint(double,double)));
 
+	connect(ui->actionNew_Text, SIGNAL(triggered()), this, SLOT(newText()));
 	connect(ui->actionLoad_Text, SIGNAL(triggered()), this, SLOT(loadText()));
 	connect(ui->actionSave_Text, SIGNAL(triggered()), this, SLOT(saveTxt()));
+	connect(ui->actionSave_Text_As, SIGNAL(triggered()), this, SLOT(saveTxtAs()));
 	connect(ui->actionSave_SVG, SIGNAL(triggered()), this, SLOT(saveSVG()));
 
 	connect(command, SIGNAL(namesChanged()), ui->L, SLOT(updateNamesView()));
@@ -55,12 +58,18 @@ void MainWindow::parseAndPaint()
 		if(pd == svg)
 			command->setSkipImages(true);
 		else
+		{
 			command->setSkipImages(false);
+		}
 		command->clearTrans();
 		command->setHighlightPP(ui->D->getHightlightPath());
 		command->resetAbsolute();
 		painter->begin(pd);
-		painter->eraseRect(QRect(0,0,pd->width(),pd->height()));
+		if(pd == ui->D->pixmap)
+		{
+			painter->eraseRect(QRect(0,0,pd->width(),pd->height()));
+			painter->translate(-ui->D->pixmapShift.x(), -ui->D->pixmapShift.y());
+		}
 		QPainterPath pp;
 		command->setPP(pp);
 		painter->setRenderHint(QPainter::Antialiasing);
@@ -89,12 +98,20 @@ void MainWindow::parseAndPaint()
 
 }
 
+void MainWindow::newText()
+{
+	command->clearAlias();
+	ui->L->setText(QString());
+	currentFilename.clear();
+}
+
 void MainWindow::loadText()
 {
 	QString fn(QFileDialog::getOpenFileName(this, QString("Load Text"), QDir::homePath()));
 	if(fn.isEmpty())
 		return;
 
+	currentFilename = fn;
 	QFile f(fn);
 	if(f.open(QIODevice::ReadOnly))
 	{
@@ -105,11 +122,26 @@ void MainWindow::loadText()
 
 void MainWindow::saveTxt()
 {
-	QString	fn(QFileDialog::getSaveFileName ( this,  QString("Save File"), QDir::homePath()));
-	if(fn.isEmpty())
+	if(currentFilename.isEmpty())
+	{
+		saveTxtAs();
+		return;
+	}
+	QFile f(currentFilename);
+	if(f.open(QIODevice::WriteOnly))
+	{
+		f.write(ui->L->text().toUtf8());
+		f.close();
+	}
+}
+
+void MainWindow::saveTxtAs()
+{
+	currentFilename = QFileDialog::getSaveFileName ( this,  QString("Save File"), QDir::homePath());
+	if(currentFilename.isEmpty())
 		return;
 
-	QFile f(fn);
+	QFile f(currentFilename);
 	if(f.open(QIODevice::WriteOnly))
 	{
 		f.write(ui->L->text().toUtf8());
