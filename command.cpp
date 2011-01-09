@@ -215,6 +215,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	else if(command == QString("end"))
 	{
 		painter->drawPath(painterPath);
+		painterPath = QPainterPath();
 	}
 	else if(command == QString("close"))
 	{
