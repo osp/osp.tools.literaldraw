@@ -13,6 +13,7 @@
 #include <QPointF>
 #include <QList>
 #include <QTransform>
+#include <QFileSystemWatcher>
 
 class Command : public QObject
 {
@@ -30,6 +31,7 @@ class Command : public QObject
 
 	QList<QTransform> transforms;
 
+	QFileSystemWatcher imgWatcher;
 	QMap<QString, QImage> imgCache;
 	bool skipImages;
 
@@ -60,6 +62,9 @@ public:
 	QList<QTransform> getTrans(){return transforms;}
 
 	void resetAbsolute(){coordAbsolute = true;}
+
+public slots:
+	void updateImgCache(const QString& fn);
 
 signals:
 	void namesChanged();

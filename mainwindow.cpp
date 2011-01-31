@@ -10,6 +10,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QTextStream>
+#include <QFileInfo>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -102,7 +103,7 @@ void MainWindow::newText()
 {
 	command->clearAlias();
 	ui->L->setText(QString());
-	currentFilename.clear();
+	setCurrentFile();
 }
 
 void MainWindow::loadText()
@@ -111,7 +112,7 @@ void MainWindow::loadText()
 	if(fn.isEmpty())
 		return;
 
-	currentFilename = fn;
+	setCurrentFile(fn);
 	QFile f(fn);
 	if(f.open(QIODevice::ReadOnly))
 	{
@@ -137,10 +138,10 @@ void MainWindow::saveTxt()
 
 void MainWindow::saveTxtAs()
 {
-	currentFilename = QFileDialog::getSaveFileName ( this,  QString("Save File"), QDir::homePath());
-	if(currentFilename.isEmpty())
+	QString fn = QFileDialog::getSaveFileName ( this,  QString("Save File"), QDir::homePath());
+	if(fn.isEmpty())
 		return;
-
+	setCurrentFile(fn);
 	QFile f(currentFilename);
 	if(f.open(QIODevice::WriteOnly))
 	{
@@ -190,5 +191,16 @@ void MainWindow::saveSVG()
 		f.write(ba);
 		f.close();
 	}
+}
+
+
+void MainWindow::setCurrentFile(const QString &fn)
+{
+	currentFilename = fn;
+	QFileInfo info(currentFilename);
+	if(fn.isEmpty())
+		setWindowTitle(QString("New File - LiteralDraw"));
+	else
+		setWindowTitle(QString("%1 - LiteralDraw").arg(info.fileName()));
 }
 

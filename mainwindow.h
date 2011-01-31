@@ -38,6 +38,7 @@ private:
 	Command * command;
 
 	QString currentFilename;
+	void setCurrentFile(const QString& fn = QString());
 
 private slots:
 	void parseAndPaint();

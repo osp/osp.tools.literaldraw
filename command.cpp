@@ -30,6 +30,8 @@ Command::Command():
 
 	clearAlias();
 
+	connect(&imgWatcher, SIGNAL(fileChanged(QString)), this, SLOT(updateImgCache(QString)));
+
 }
 
 Command * Command::getInstance()
@@ -128,7 +130,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			highlightPath->addEllipse(targetRect);
 
 		}
-		painterPath.moveTo(vars.at(1).toDouble(), vars.at(2).toDouble());
+		painterPath.moveTo(target);
 	}
 	else if(command == QString("line"))
 	{
@@ -308,7 +310,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	}
 	else if(command == QString("image")
 		&& !skipImages)
-		{
+	{
 		QString imgFile(vars.at(1).toString());
 		if(QFile::exists(imgFile))
 		{
@@ -319,7 +321,10 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			{
 				img.load(imgFile);
 				if(!img.isNull())
+				{
 					imgCache.insert(imgFile, img);
+					imgWatcher.addPath(imgFile);
+				}
 			}
 			if(!img.isNull())
 			{
@@ -361,4 +366,15 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 
 //	qDebug()<<"A"<<A<<"B"<<B;
 }
+
+
+void Command::updateImgCache(const QString &fn)
+{
+	imgCache.remove(fn);
+}
+
+
+
+
+
 
