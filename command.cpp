@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QFont>
 #include <QFile>
+#include <QSvgRenderer>
+#include <cmath>
 
 Command * Command::instance = 0;
 Command::Command():
@@ -27,6 +29,8 @@ Command::Command():
 	commands.insert("textblock", 3);
 	commands.insert("image", 1);
 	commands.insert("absolute", 1);
+	commands.insert("svg", 1);
+	commands.insert("svg-effect", 3);
 
 	clearAlias();
 
@@ -360,6 +364,89 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	else if(command == QString("absolute"))
 	{
 		coordAbsolute = vars.at(1).toBool();
+	}
+	else if(command == QString("svg"))
+	{
+		QString svgfile(vars.at(1).toString());
+		if(QFile::exists(svgfile))
+		{
+			QSvgRenderer svgRdr(svgfile);
+			QRectF r(svgRdr.viewBoxF());
+			svgRdr.render(painter, r);
+		}
+
+	}
+	else if(command == QString("svg-effect"))
+	{
+		// @1 svg file
+		// @2 raster file
+		// @3 effect: rotate;...
+		QString svgfile(vars.at(1).toString());
+		QString effectfile(vars.at(2).toString());
+//		QString effect(vars.at(3).toString()); We just support rotation now
+		if(QFile::exists(svgfile) && QFile::exists(effectfile))
+		{
+			QImage img;
+			if(imgCache.contains(effectfile))
+				img = imgCache.value(effectfile);
+			else
+			{
+				img.load(effectfile);
+				if(!img.isNull())
+				{
+					imgCache.insert(effectfile, img);
+					imgWatcher.addPath(effectfile);
+				}
+			}
+			QSvgRenderer svgRdr(svgfile);
+			QRectF r(svgRdr.viewBoxF());
+			int cols(qRound(img.width() / r.width()));
+			int rows(qRound(img.height() / r.height()));
+			if(cols == 0 || rows == 0)
+				return;
+			qDebug()<< "E"<<cols<<rows;
+			for(int y(0); y < rows; ++y)
+			{
+				for(int x(0); x < cols; ++x)
+				{
+					qDebug()<<"I"<<x<<y;
+					QImage cell(img.copy(x * r.width(), y * r.height(), r.width(), r.height()));
+					double val(0);
+					for(int cy(0); cy < cell.height(); ++cy)
+					{
+						for(int cx(0); cx < cell.width(); ++cx)
+						{
+							val += QColor(cell.pixel(cx,cy)).lightnessF();
+						}
+					}
+					double cMean(val / ((cell.height() * cell.width())) * 360);
+					double rAngle(cMean * 0.0174532925);
+					/*
+  SinVal := Sin(RotAng);
+  CosVal := Cos(RotAng);
+  Nx := x * CosVal - y * SinVal;
+  Ny := y * CosVal + x * SinVal;
+					 */
+					double sinVal(sin(rAngle));
+					double cosVal(cos(rAngle));
+					double hW(r.width() / 2.0);
+					double hH(r.height() / 2.0);
+					qDebug()<<cMean;
+					painter->save();
+					double tx(x * r.width() );
+					double ty(y * r.height());
+					painter->translate(tx, ty);
+//					painter->rotate(cMean);
+//					painter->translate(hW  * cosVal - hH * sinVal, hH * cosVal - hW * sinVal);
+					painter->setTransform(QTransform().translate(hW, hH).rotate(cMean).translate(-hW, -hH), true);
+					svgRdr.render(painter, r);
+					painter->restore();
+				}
+			}
+//			svgRdr.render(painter, r);
+
+		}
+
 	}
 	B = tDbg.elapsed() - A;
 
