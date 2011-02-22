@@ -19,6 +19,17 @@ class Command : public QObject
 {
 	Q_OBJECT
 
+	enum ColorComponent
+	{
+		NoColorComponent,
+		Red,
+		Green,
+		Blue,
+		Hue,
+		Saturation,
+		Lightness
+	};
+
 	static Command * instance;
 	Command();
 	QPainter * painter;

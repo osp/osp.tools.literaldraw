@@ -30,7 +30,7 @@ Command::Command():
 	commands.insert("image", 1);
 	commands.insert("absolute", 1);
 	commands.insert("svg", 1);
-	commands.insert("svg-effect", 3);
+	commands.insert("svg-effect", 4);
 
 	clearAlias();
 
@@ -394,8 +394,25 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		bool eRotate(effect == QString("r") || effect == QString("R"));
 		bool eScale(effect == QString("s") || effect == QString("S"));
 		bool eInvert(effect == QString("R") || effect == QString("S"));
+
+		ColorComponent cc(NoColorComponent);
+		QString ccString(vars.at(4).toString());
+		if(ccString == QString("r") || ccString == QString("R"))
+			cc = Red;
+		else if(ccString == QString("g") || ccString == QString("G"))
+			cc = Green;
+		else if(ccString == QString("b") || ccString == QString("B"))
+			cc = Blue;
+		else if(ccString == QString("h") || ccString == QString("H"))
+			cc = Hue;
+		else if(ccString == QString("s") || ccString == QString("S"))
+			cc = Saturation;
+		else if(ccString == QString("l") || ccString == QString("L"))
+			cc = Lightness;
+
 		if(QFile::exists(svgfile) && QFile::exists(effectfile)
-			&& (eRotate || eScale))
+			&& (eRotate || eScale)
+			&& cc != NoColorComponent)
 		{
 			if(!imgCache.contains(svgfile))
 			{
@@ -435,7 +452,19 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 					{
 						for(int cx(cxOrigin); cx < cRight; ++cx)
 						{
-							val += QColor(img.pixel(cx,cy)).lightnessF();
+							QColor ccolor(img.pixel(cx,cy));
+							if(cc == Red)
+								val += ccolor.redF();
+							else if(cc == Green)
+								val += ccolor.greenF();
+							else if(cc == Blue)
+								val += ccolor.blueF();
+							else if(cc == Hue)
+								val += ccolor.hslHueF();
+							else if(cc == Saturation)
+								val += ccolor.hslSaturationF();
+							else if(cc == Lightness)
+								val += ccolor.lightnessF();
 						}
 					}
 					double cMean(val / ((r.height() * r.width())));
@@ -478,6 +507,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 void Command::updateImgCache(const QString &fn)
 {
 	imgCache.remove(fn);
+	imgWatcher.removePath(fn);
 	emit imageChanged();
 }
 
