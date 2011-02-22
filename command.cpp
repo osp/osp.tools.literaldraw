@@ -53,6 +53,13 @@ void Command::clearAlias()
 		alias.insert(c,c);
 }
 
+void Command::clearImageCache()
+{
+	foreach(QString i, imgCache.keys())
+		imgWatcher.removePath(i);
+	imgCache.clear();
+}
+
 void Command::setAlias(const QString &key, const QString &val)
 {
 	if(alias.contains(key))
@@ -383,9 +390,18 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		// @3 effect: rotate;...
 		QString svgfile(vars.at(1).toString());
 		QString effectfile(vars.at(2).toString());
-//		QString effect(vars.at(3).toString()); We just support rotation now
-		if(QFile::exists(svgfile) && QFile::exists(effectfile))
+		QString effect(vars.at(3).toString());
+		bool eRotate(effect == QString("r") || effect == QString("R"));
+		bool eScale(effect == QString("s") || effect == QString("S"));
+		bool eInvert(effect == QString("R") || effect == QString("S"));
+		if(QFile::exists(svgfile) && QFile::exists(effectfile)
+			&& (eRotate || eScale))
 		{
+			if(!imgCache.contains(svgfile))
+			{
+				imgCache.insert(svgfile, QImage());
+				imgWatcher.addPath(svgfile);
+			}
 			QImage img;
 			if(imgCache.contains(effectfile))
 				img = imgCache.value(effectfile);
@@ -409,41 +425,45 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			{
 				for(int x(0); x < cols; ++x)
 				{
-					qDebug()<<"I"<<x<<y;
-					QImage cell(img.copy(x * r.width(), y * r.height(), r.width(), r.height()));
+//					qDebug()<<"I"<<x<<y;
+					int cxOrigin(x * r.width());
+					int cyOrigin(y * r.height());
+					int cRight(qMin(qRound(r.width()) + cxOrigin, img.width()));
+					int cBottom(qMin(qRound(r.height()) + cyOrigin, img.height()));
 					double val(0);
-					for(int cy(0); cy < cell.height(); ++cy)
+					for(int cy(cyOrigin); cy < cBottom; ++cy)
 					{
-						for(int cx(0); cx < cell.width(); ++cx)
+						for(int cx(cxOrigin); cx < cRight; ++cx)
 						{
-							val += QColor(cell.pixel(cx,cy)).lightnessF();
+							val += QColor(img.pixel(cx,cy)).lightnessF();
 						}
 					}
-					double cMean(val / ((cell.height() * cell.width())) * 360);
-					double rAngle(cMean * 0.0174532925);
-					/*
-  SinVal := Sin(RotAng);
-  CosVal := Cos(RotAng);
-  Nx := x * CosVal - y * SinVal;
-  Ny := y * CosVal + x * SinVal;
-					 */
-					double sinVal(sin(rAngle));
-					double cosVal(cos(rAngle));
-					double hW(r.width() / 2.0);
-					double hH(r.height() / 2.0);
-					qDebug()<<cMean;
-					painter->save();
+					double cMean(val / ((r.height() * r.width())));
+					if(eInvert)
+						cMean = 1 - cMean;
+					if(cMean == 0)
+						continue;
+
 					double tx(x * r.width() );
 					double ty(y * r.height());
+					double hW(r.width() / 2.0);
+					double hH(r.height() / 2.0);
+					painter->save();
 					painter->translate(tx, ty);
-//					painter->rotate(cMean);
-//					painter->translate(hW  * cosVal - hH * sinVal, hH * cosVal - hW * sinVal);
-					painter->setTransform(QTransform().translate(hW, hH).rotate(cMean).translate(-hW, -hH), true);
+					if(eRotate)
+					{
+						double rotVal(cMean * 360.0);
+						painter->setTransform(QTransform().translate(hW, hH).rotate(rotVal).translate(-hW, -hH), true);
+					}
+					else if(eScale)
+					{
+//						painter->scale(cMean, cMean);
+						painter->setTransform(QTransform().translate(hW, hH).scale(cMean, cMean).translate(-hW, -hH), true);
+					}
 					svgRdr.render(painter, r);
 					painter->restore();
 				}
 			}
-//			svgRdr.render(painter, r);
 
 		}
 
@@ -458,6 +478,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 void Command::updateImgCache(const QString &fn)
 {
 	imgCache.remove(fn);
+	emit imageChanged();
 }
 
 

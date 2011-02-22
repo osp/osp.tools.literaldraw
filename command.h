@@ -45,6 +45,7 @@ class Command : public QObject
 public:
 	static Command * getInstance();
 	void clearAlias();
+	void clearImageCache();
 	void setPainter(QPainter * p){painter = p;}
 	void setPP(QPainterPath& pp){painterPath = pp;}
 	QPainterPath& PP(){return painterPath;}
@@ -68,6 +69,7 @@ public slots:
 
 signals:
 	void namesChanged();
+	void imageChanged();
 };
 
 #endif // COMMAND_H

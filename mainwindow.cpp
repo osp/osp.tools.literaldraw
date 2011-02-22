@@ -18,14 +18,21 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 	ui->setupUi(this);
 
+	highlight = new QCheckBox("Highlight");
+	highlight->setChecked(false);
+	statusBar()->addPermanentWidget(highlight);
+
 	painter = new QPainter;
 	command = Command::getInstance();
 	command->setPainter(painter);
 
 	ui->L->setModel(new LiteralModel(command, this));
 
+	connect(command, SIGNAL(imageChanged()), this, SLOT(parseAndPaint()));
+
+	connect(highlight, SIGNAL(toggled(bool)), this, SLOT(switchHighlight(bool)));
+
 	connect(ui->L, SIGNAL(textChanged()), this, SLOT(parseAndPaint()));
-	connect(ui->L, SIGNAL(posChanged()), this, SLOT(parseAndPaint()));
 	connect(ui->D, SIGNAL(somethingChange()), this, SLOT(parseAndPaint()));
 	connect(ui->D, SIGNAL(posClick(double,double)), ui->L, SLOT(insertPoint(double,double)));
 
@@ -43,6 +50,14 @@ MainWindow::~MainWindow()
 	delete ui;
 }
 
+void MainWindow::switchHighlight(bool h)
+{
+	if(h)
+		connect(ui->L, SIGNAL(posChanged()), this, SLOT(parseAndPaint()));
+	else
+		disconnect(ui->L, SIGNAL(posChanged()), this, SLOT(parseAndPaint()));
+
+}
 
 void MainWindow::parseAndPaint()
 {
@@ -63,7 +78,8 @@ void MainWindow::parseAndPaint()
 			command->setSkipImages(false);
 		}
 		command->clearTrans();
-		command->setHighlightPP(ui->D->getHightlightPath());
+		if(highlight->isChecked())
+			command->setHighlightPP(ui->D->getHightlightPath());
 		command->resetAbsolute();
 		painter->begin(pd);
 		if(pd == ui->D->pixmap)
@@ -102,6 +118,7 @@ void MainWindow::parseAndPaint()
 void MainWindow::newText()
 {
 	command->clearAlias();
+	command->clearImageCache();
 	ui->L->setText(QString());
 	setCurrentFile();
 }
@@ -117,7 +134,11 @@ void MainWindow::loadText()
 	if(f.open(QIODevice::ReadOnly))
 	{
 		command->clearAlias();
+		command->clearImageCache();
+		ui->L->blockSignals(true);
 		ui->L->setText(f.readAll());
+		ui->L->blockSignals(false);
+		parseAndPaint();
 	}
 }
 

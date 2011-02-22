@@ -10,6 +10,7 @@
 #include <QList>
 #include <QtSvg/QSvgGenerator>
 #include <QBuffer>
+#include <QCheckBox>
 
 #include "command.h"
 
@@ -40,6 +41,8 @@ private:
 	QString currentFilename;
 	void setCurrentFile(const QString& fn = QString());
 
+	QCheckBox * highlight;
+
 private slots:
 	void parseAndPaint();
 	void newText();
@@ -47,6 +50,8 @@ private slots:
 	void saveTxt();
 	void saveTxtAs();
 	void saveSVG();
+
+	void switchHighlight(bool h);
 };
 
 #endif // MAINWINDOW_H
