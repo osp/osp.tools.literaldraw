@@ -393,7 +393,8 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		QString effect(vars.at(3).toString());
 		bool eRotate(effect == QString("r") || effect == QString("R"));
 		bool eScale(effect == QString("s") || effect == QString("S"));
-		bool eInvert(effect == QString("R") || effect == QString("S"));
+		bool eScaleAndRotate(effect == QString("w") || effect == QString("W"));
+		bool eInvert(effect == QString("R") || effect == QString("S") || effect == QString("W"));
 
 		ColorComponent cc(NoColorComponent);
 		QString ccString(vars.at(4).toString());
@@ -411,7 +412,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			cc = Lightness;
 
 		if(QFile::exists(svgfile) && QFile::exists(effectfile)
-			&& (eRotate || eScale)
+			&& (eRotate || eScale || eScaleAndRotate)
 			&& cc != NoColorComponent)
 		{
 			if(!imgCache.contains(svgfile))
@@ -488,6 +489,14 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 					{
 //						painter->scale(cMean, cMean);
 						painter->setTransform(QTransform().translate(hW, hH).scale(cMean, cMean).translate(-hW, -hH), true);
+					}
+					else if(eScaleAndRotate)
+					{
+						double rotVal(cMean * 360.0);
+						QTransform srTrans(QTransform().translate(hW, hH).scale(cMean, cMean).rotate(rotVal).translate(-hW, -hH));
+						qDebug()<<srTrans;
+						painter->setTransform(srTrans, true);
+
 					}
 					svgRdr.render(painter, r);
 					painter->restore();
