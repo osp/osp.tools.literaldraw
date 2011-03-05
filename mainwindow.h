@@ -52,6 +52,7 @@ private slots:
 	void saveSVG();
 
 	void switchHighlight(bool h);
+
 };
 
 #endif // MAINWINDOW_H

@@ -45,6 +45,7 @@ private slots:
 
 public slots:
     void updateScene();
+    void sceneRect(double w, double h);
 
 
 signals:

@@ -20,7 +20,6 @@ signals:
 	void posChanged(QPoint);
 	void sizeChanged(int);
 
-public slots:
 
 };
 

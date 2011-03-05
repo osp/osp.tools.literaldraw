@@ -29,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->L->setModel(new LiteralModel(command, this));
 
 	connect(command, SIGNAL(imageChanged()), this, SLOT(parseAndPaint()));
+	connect(command, SIGNAL(changeSceneRect(double,double)), ui->D, SLOT(sceneRect(double,double)));
 
 	connect(highlight, SIGNAL(toggled(bool)), this, SLOT(switchHighlight(bool)));
 
@@ -66,7 +67,7 @@ void MainWindow::parseAndPaint()
 	buffer.open(QIODevice::ReadWrite);
 	svg = new QSvgGenerator;
 	svg->setOutputDevice(&buffer);
-	svg->setSize(QSize(2000, 2000));
+	svg->setViewBox(ui->D->scene->sceneRect());
 	devices.clear();
 	devices << svg << ui->D->pixmap;
 	foreach(QPaintDevice* pd, devices)
@@ -185,7 +186,7 @@ void MainWindow::saveSVG()
 		buffer.open(QIODevice::ReadWrite);
 		svg = new QSvgGenerator;
 		svg->setOutputDevice(&buffer);
-		svg->setSize(QSize(2000, 2000));
+		svg->setViewBox(ui->D->scene->sceneRect());
 		painter->begin(svg);
 		painter->eraseRect(QRect(0,0,svg->width(),svg->height()));
 		QString text(ui->L->text());

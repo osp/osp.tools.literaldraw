@@ -81,6 +81,7 @@ public slots:
 signals:
 	void namesChanged();
 	void imageChanged();
+	void changeSceneRect(double, double);
 };
 
 #endif // COMMAND_H

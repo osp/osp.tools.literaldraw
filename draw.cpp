@@ -136,3 +136,8 @@ void Draw::updateCoord(QPoint pos)
 	verticalLine->setPos(p.x(), 0);
 	horizontalLine->setPos(0,p.y());
 }
+
+void Draw::sceneRect(double w, double h)
+{
+	scene->setSceneRect(0, 0, w, h);
+}

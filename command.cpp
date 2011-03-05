@@ -31,6 +31,7 @@ Command::Command():
 	commands.insert("absolute", 1);
 	commands.insert("svg", 1);
 	commands.insert("svg-effect", 4);
+	commands.insert("page-size", 2);
 
 	clearAlias();
 
@@ -372,6 +373,10 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	{
 		coordAbsolute = vars.at(1).toBool();
 	}
+	else if(command == QString("page-size"))
+	{
+		emit changeSceneRect(vars.at(1).toDouble(), vars.at(2).toDouble());
+	}
 	else if(command == QString("svg"))
 	{
 		QString svgfile(vars.at(1).toString());
@@ -449,6 +454,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 					int cRight(qMin(qRound(r.width()) + cxOrigin, img.width()));
 					int cBottom(qMin(qRound(r.height()) + cyOrigin, img.height()));
 					double val(0);
+					double nVal(0);
 					for(int cy(cyOrigin); cy < cBottom; ++cy)
 					{
 						for(int cx(cxOrigin); cx < cRight; ++cx)
@@ -466,9 +472,11 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 								val += ccolor.hslSaturationF();
 							else if(cc == Lightness)
 								val += ccolor.lightnessF();
+							++nVal;
 						}
 					}
-					double cMean(val / ((r.height() * r.width())));
+					double cMean(val / nVal);
+					qDebug()<<val<<cMean<<nVal;
 					if(eInvert)
 						cMean = 1 - cMean;
 					if(cMean == 0)
