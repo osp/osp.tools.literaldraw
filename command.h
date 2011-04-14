@@ -51,8 +51,12 @@ class Command : public QObject
 	QString getFromAlias(const QString& a) const;
 	bool checkVars(const QVariantList& vars);
 
+	QMap<QString, double> varMap;
+
 	void highlightPre(QPointF& point);
 	void highlightPost(QPointF& point);
+
+	double number(QVariant v);
 public:
 	static Command * getInstance();
 	void clearAlias();
@@ -72,6 +76,8 @@ public:
 
 	void clearTrans(){transforms.clear();}
 	QList<QTransform> getTrans(){return transforms;}
+
+	void clearVars() {varMap.clear();}
 
 	void resetAbsolute(){coordAbsolute = true;}
 

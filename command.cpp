@@ -33,6 +33,7 @@ Command::Command():
 	commands.insert("svg-effect", 4);
 	commands.insert("page-size", 2);
 	commands.insert("turn", 2);
+	commands.insert("var", 2);
 
 	clearAlias();
 
@@ -112,6 +113,14 @@ void Command::highlightPost(QPointF& point)
 }
 
 
+double Command::number(QVariant v)
+{
+	if(varMap.contains(v.toString()))
+		return varMap.value(v.toString());
+	return v.toDouble();
+}
+
+
 void Command::Draw(const QVariantList &vars, bool higlight)
 {
 
@@ -123,9 +132,13 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 
 	A = tDbg.elapsed();
 	const QPointF curPos(painterPath.currentPosition());
-	if(command == QString("move"))
+	if(command == QString("var"))
 	{
-		QPointF target(vars.at(1).toDouble(), vars.at(2).toDouble());
+		varMap.insert(vars.at(1).toString(), number(vars.at(2)));
+	}
+	else if(command == QString("move"))
+	{
+		QPointF target(number(vars.at(1)), number(vars.at(2)));
 		if(!coordAbsolute)
 			target = curPos + target;
 		if(higlight)
@@ -147,7 +160,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	}
 	else if(command == QString("line"))
 	{
-		QPointF target(vars.at(1).toDouble(), vars.at(2).toDouble());
+		QPointF target(number(vars.at(1)), number(vars.at(2)));
 		if(!coordAbsolute)
 			target = curPos + target;
 		if(higlight)
@@ -168,7 +181,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	else if(command == QString("turn"))
 	{
 		QString angleStr(vars.at(1).toString());
-		double distance( vars.at(2).toDouble() );
+		double distance( number(vars.at(2)) );
 		int ec(painterPath.elementCount());
 		QPointF curPosMinus1(curPos);
 		if(ec > 1) // we want at least 2 points
@@ -181,29 +194,33 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		double AC(sqrt(pow(AB, 2.0) + pow(BC, 2.0)));
 		double ABAC(AB/AC);
 		double startAngle(acos(ABAC)* 180.0 / 3.14159265);
-		qDebug()<<"AB"<<AB<<"BC"<<BC<<"AC"<<AC<<"ABAC"<<ABAC;
 
+		bool process(true);
 		double angle(0);
-		if(angleStr == QString("S"))
+		if(angleStr == QString("s"))
 			angle = startAngle ;
-		else if(angleStr == QString("R"))
+		else if(angleStr == QString("r"))
 			angle = startAngle + 90;
-		else if(angleStr == QString("B"))
+		else if(angleStr == QString("b"))
 			angle = startAngle + 180;
-		else if(angleStr == QString("L"))
+		else if(angleStr == QString("l"))
 			angle = startAngle + 270;
+		else
+			process = false;
 
-		double dx(cos(angle * 3.14159265 / 180.0) * distance);
-		double dy(sqrt( pow(distance, 2) - pow(dx,2) ) );
-		QPointF target(curPos + QPointF(dx,dy));
-		qDebug()<<startAngle<<angle<<target;
-		painterPath.lineTo(target);
+		if(process)
+		{
+			double dx(cos(angle * 3.14159265 / 180.0) * distance);
+			double dy(sqrt( pow(distance, 2) - pow(dx,2) ) );
+			QPointF target(curPos + QPointF(dx,dy));
+			painterPath.lineTo(target);
+		}
 	}
 	else if(command == QString("cubic"))
 	{
-		QPointF target(vars.at(5).toDouble(), vars.at(6).toDouble());
-		QPointF c1(vars.at(1).toDouble(), vars.at(2).toDouble());
-		QPointF c2(vars.at(3).toDouble(), vars.at(4).toDouble());
+		QPointF target(number(vars.at(5)), number(vars.at(6)));
+		QPointF c1(number(vars.at(1)), number(vars.at(2)));
+		QPointF c2(number(vars.at(3)), number(vars.at(4)));
 		if(!coordAbsolute)
 		{
 			target = curPos + target;
@@ -247,7 +264,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		QColor c(vars.at(1).toInt(), vars.at(2).toInt(), vars.at(3).toInt());
 		if(vars.count() == 6)
 			c.setAlpha(vars.at(5).toInt());
-		double width(vars.at(4).toDouble());
+		double width(number(vars.at(4)));
 		painter->setPen(QPen(QBrush(c), width));
 	}
 	else if(command == QString("transform"))
@@ -255,9 +272,9 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		painter->drawPath(painterPath);
 		painterPath = QPainterPath();
 		painterPath.moveTo(curPos);
-		QTransform t(vars.at(1).toDouble(), vars.at(2).toDouble(),
-			     vars.at(3).toDouble(), vars.at(4).toDouble(),
-			     vars.at(5).toDouble(), vars.at(6).toDouble());
+		QTransform t(number(vars.at(1)), number(vars.at(2)),
+			     number(vars.at(3)), number(vars.at(4)),
+			     number(vars.at(5)), number(vars.at(6)));
 		painter->setWorldTransform(t, true);
 		transforms << t;
 	}
@@ -283,7 +300,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			familyName << vars.at(i).toString();
 		}
 		QFont f(familyName.join(" "));
-		f.setPointSizeF(vars.at(1).toDouble());
+		f.setPointSizeF(number(vars.at(1)));
 		f.setWeight(vars.at(2).toInt());
 		f.setItalic(vars.at(3).toBool());
 		painter->setFont(f);
@@ -319,7 +336,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	}
 	else if(command == QString("textblock"))
 	{
-		int width(vars.at(1).toDouble());
+		int width(number(vars.at(1)));
 		Qt::Alignment align(Qt::AlignLeft);
 		QString ua(vars.at(2).toString());
 		if(ua == QString("right"))
@@ -411,7 +428,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 	}
 	else if(command == QString("page-size"))
 	{
-		emit changeSceneRect(vars.at(1).toDouble(), vars.at(2).toDouble());
+		emit changeSceneRect(number(vars.at(1)), number(vars.at(2)));
 	}
 	else if(command == QString("svg"))
 	{
