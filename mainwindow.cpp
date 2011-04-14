@@ -92,6 +92,8 @@ void MainWindow::parseAndPaint()
 		command->setPP(pp);
 		painter->setRenderHint(QPainter::Antialiasing);
 		int cline(ui->L->currentLine());
+		if(!highlight->isChecked())
+			cline = -1;
 		int lc(0);
 		foreach(QString s, ui->L->lines())
 		{

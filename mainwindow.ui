@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>686</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -51,6 +51,8 @@
     <addaction name="actionSave_Text"/>
     <addaction name="actionSave_Text_As"/>
     <addaction name="actionSave_SVG"/>
+    <addaction name="separator"/>
+    <addaction name="actionQuit"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -58,6 +60,9 @@
   <action name="actionSave_Text">
    <property name="text">
     <string>Save Text</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionSave_SVG">
@@ -69,15 +74,32 @@
    <property name="text">
     <string>Load Text...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="actionSave_Text_As">
    <property name="text">
     <string>Save Text As...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
   </action>
   <action name="actionNew_Text">
    <property name="text">
     <string>New Text</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
    </property>
   </action>
  </widget>
@@ -103,5 +125,22 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>actionQuit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>342</x>
+     <y>373</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

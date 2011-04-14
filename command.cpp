@@ -32,6 +32,7 @@ Command::Command():
 	commands.insert("svg", 1);
 	commands.insert("svg-effect", 4);
 	commands.insert("page-size", 2);
+	commands.insert("turn", 2);
 
 	clearAlias();
 
@@ -335,7 +336,8 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 				if(!img.isNull())
 				{
 					imgCache.insert(imgFile, img);
-					imgWatcher.addPath(imgFile);
+					if(!imgWatcher.files().contains(imgFile))
+						imgWatcher.addPath(imgFile);
 				}
 			}
 			if(!img.isNull())
@@ -423,7 +425,8 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 			if(!imgCache.contains(svgfile))
 			{
 				imgCache.insert(svgfile, QImage());
-				imgWatcher.addPath(svgfile);
+				if(!imgWatcher.files().contains(svgfile))
+					imgWatcher.addPath(svgfile);
 			}
 			QImage img;
 			if(imgCache.contains(effectfile))
@@ -434,7 +437,8 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 				if(!img.isNull())
 				{
 					imgCache.insert(effectfile, img);
-					imgWatcher.addPath(effectfile);
+					if(!imgWatcher.files().contains(effectfile))
+						imgWatcher.addPath(effectfile);
 				}
 			}
 			QSvgRenderer svgRdr(svgfile);
@@ -514,6 +518,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		}
 
 	}
+	painter->drawPath(painterPath);
 	B = tDbg.elapsed() - A;
 
 
@@ -523,8 +528,9 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 
 void Command::updateImgCache(const QString &fn)
 {
+	qDebug()<<"updateImgCache"<<fn;
 	imgCache.remove(fn);
-	imgWatcher.removePath(fn);
+//	imgWatcher.removePath(fn);
 	emit imageChanged();
 }
 
