@@ -165,6 +165,40 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		}
 		painterPath.lineTo(target);
 	}
+	else if(command == QString("turn"))
+	{
+		QString angleStr(vars.at(1).toString());
+		double distance( vars.at(2).toDouble() );
+		int ec(painterPath.elementCount());
+		QPointF curPosMinus1(curPos);
+		if(ec > 1) // we want at least 2 points
+		{
+			curPosMinus1 = QPointF(painterPath.elementAt(ec - 2).x, painterPath.elementAt(ec - 2).y);
+		}
+		qDebug()<<curPos<<curPosMinus1;
+		double AB(qAbs(curPosMinus1.x() - curPos.x()));
+		double BC(qAbs(curPosMinus1.y() - curPos.y()));
+		double AC(sqrt(pow(AB, 2.0) + pow(BC, 2.0)));
+		double ABAC(AB/AC);
+		double startAngle(acos(ABAC)* 180.0 / 3.14159265);
+		qDebug()<<"AB"<<AB<<"BC"<<BC<<"AC"<<AC<<"ABAC"<<ABAC;
+
+		double angle(0);
+		if(angleStr == QString("S"))
+			angle = startAngle ;
+		else if(angleStr == QString("R"))
+			angle = startAngle + 90;
+		else if(angleStr == QString("B"))
+			angle = startAngle + 180;
+		else if(angleStr == QString("L"))
+			angle = startAngle + 270;
+
+		double dx(cos(angle * 3.14159265 / 180.0) * distance);
+		double dy(sqrt( pow(distance, 2) - pow(dx,2) ) );
+		QPointF target(curPos + QPointF(dx,dy));
+		qDebug()<<startAngle<<angle<<target;
+		painterPath.lineTo(target);
+	}
 	else if(command == QString("cubic"))
 	{
 		QPointF target(vars.at(5).toDouble(), vars.at(6).toDouble());
