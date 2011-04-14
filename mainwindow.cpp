@@ -79,6 +79,7 @@ void MainWindow::parseAndPaint()
 			command->setSkipImages(false);
 		}
 		command->clearTrans();
+		command->clearVars();
 		if(highlight->isChecked())
 			command->setHighlightPP(ui->D->getHightlightPath());
 		command->resetAbsolute();
@@ -196,6 +197,7 @@ void MainWindow::saveSVG()
 		QPainterPath pp;
 		command->setPP(pp);
 		command->clearTrans();
+		command->clearVars();
 		command->resetAbsolute();
 		painter->setRenderHint(QPainter::Antialiasing);
 		foreach(QString s, tl)

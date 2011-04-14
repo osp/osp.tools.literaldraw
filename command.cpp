@@ -195,16 +195,19 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		double ABAC(AB/AC);
 		double startAngle(acos(ABAC)* 180.0 / 3.14159265);
 
+		double extra(0);
+		if(vars.count() > 3)
+			extra = number(vars.at(3));
 		bool process(true);
 		double angle(0);
 		if(angleStr == QString("s"))
-			angle = startAngle ;
+			angle = startAngle + extra;
 		else if(angleStr == QString("r"))
-			angle = startAngle + 90;
+			angle = startAngle + 90 + extra;
 		else if(angleStr == QString("b"))
-			angle = startAngle + 180;
+			angle = startAngle + 180 + extra;
 		else if(angleStr == QString("l"))
-			angle = startAngle + 270;
+			angle = startAngle + 270 + extra;
 		else
 			process = false;
 
