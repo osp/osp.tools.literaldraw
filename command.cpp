@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QSvgRenderer>
 #include <cmath>
+#include <QLineF>
 
 Command * Command::instance = 0;
 Command::Command():
@@ -188,12 +189,9 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		{
 			curPosMinus1 = QPointF(painterPath.elementAt(ec - 2).x, painterPath.elementAt(ec - 2).y);
 		}
-		qDebug()<<curPos<<curPosMinus1;
-		double AB(qAbs(curPosMinus1.x() - curPos.x()));
-		double BC(qAbs(curPosMinus1.y() - curPos.y()));
-		double AC(sqrt(pow(AB, 2.0) + pow(BC, 2.0)));
-		double ABAC(AB/AC);
-		double startAngle(acos(ABAC)* 180.0 / 3.14159265);
+
+		QLineF l1(curPosMinus1, curPos);
+		double startAngle(l1.angle());
 
 		double extra(0);
 		if(vars.count() > 3)
@@ -203,20 +201,20 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		if(angleStr == QString("s"))
 			angle = startAngle + extra;
 		else if(angleStr == QString("r"))
-			angle = startAngle + 90 + extra;
+			angle = startAngle + 270 + extra;
 		else if(angleStr == QString("b"))
 			angle = startAngle + 180 + extra;
 		else if(angleStr == QString("l"))
-			angle = startAngle + 270 + extra;
+			angle = startAngle + 90 + extra;
 		else
 			process = false;
 
 		if(process)
 		{
-			double dx(cos(angle * 3.14159265 / 180.0) * distance);
-			double dy(sqrt( pow(distance, 2) - pow(dx,2) ) );
-			QPointF target(curPos + QPointF(dx,dy));
-			painterPath.lineTo(target);
+			QLineF l2(curPos, QPointF(curPos.x() +1, 0));
+			l2.setLength(distance);
+			l2.setAngle(angle);
+			painterPath.lineTo(l2.p2());
 		}
 	}
 	else if(command == QString("cubic"))
