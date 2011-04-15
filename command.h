@@ -81,6 +81,8 @@ public:
 
 	void resetAbsolute(){coordAbsolute = true;}
 
+	void endDraw();
+
 public slots:
 	void updateImgCache(const QString& fn);
 

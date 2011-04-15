@@ -572,13 +572,17 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		}
 
 	}
-	painter->drawPath(painterPath);
 	B = tDbg.elapsed() - A;
 
 
 //	qDebug()<<"A"<<A<<"B"<<B;
 }
 
+void Command::endDraw()
+{
+	if(painter)
+		painter->drawPath(painterPath);
+}
 
 void Command::updateImgCache(const QString &fn)
 {

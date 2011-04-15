@@ -11,6 +11,7 @@
 #include <QDir>
 #include <QTextStream>
 #include <QFileInfo>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -110,12 +111,18 @@ void MainWindow::parseAndPaint()
 			}
 			++lc;
 		}
+		command->endDraw();
 		painter->end();
 	}
 	buffer.close();
 	ui->D->updateScene();
 	ui->S->updateSvg(ba);
 	delete svg;
+
+}
+
+void MainWindow::maybeSave()
+{
 
 }
 
