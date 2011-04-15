@@ -44,6 +44,11 @@ private:
 
 	QCheckBox * highlight;
 
+	bool hasChanged;
+
+protected:
+	void closeEvent(QCloseEvent *);
+
 private slots:
 	void parseAndPaint();
 	void newText();

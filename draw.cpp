@@ -13,7 +13,7 @@ Draw::Draw(QWidget *parent) :
     ui->setupUi(this);
 
     highlightPath = 0;
-    QRect r(0,0,10000, 10000);
+    QRect r(0,0,1000, 1000);
     scene = new QGraphicsScene(r);
     ui->graphicsView->setScene(scene);
 
