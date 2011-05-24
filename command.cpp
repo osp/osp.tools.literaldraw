@@ -35,6 +35,9 @@ Command::Command():
 	commands.insert("page-size", 2);
 	commands.insert("turn", 2);
 	commands.insert("var", 2);
+	commands.insert("rotate", 1);
+	commands.insert("save",0);
+	commands.insert("restore",0);
 
 	clearAlias();
 
@@ -276,6 +279,16 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		QTransform t(number(vars.at(1)), number(vars.at(2)),
 			     number(vars.at(3)), number(vars.at(4)),
 			     number(vars.at(5)), number(vars.at(6)));
+		painter->setWorldTransform(t, true);
+		transforms << t;
+	}
+	else if(command == QString("rotate"))
+	{
+		painter->drawPath(painterPath);
+		painterPath = QPainterPath();
+		painterPath.moveTo(curPos);
+		QTransform t;
+		t.rotate(number(vars.at(1)));
 		painter->setWorldTransform(t, true);
 		transforms << t;
 	}
@@ -569,6 +582,14 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 
 		}
 
+	}
+	else if(command == QString("save"))
+	{
+		painter->save();
+	}
+	else if(command == QString("restore"))
+	{
+		painter->restore();
 	}
 	B = tDbg.elapsed() - A;
 
