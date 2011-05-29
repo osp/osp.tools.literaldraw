@@ -40,8 +40,14 @@ private:
 
 	QString currentFilename;
 	void setCurrentFile(const QString& fn = QString());
+	void maybeSave();
 
 	QCheckBox * highlight;
+
+	bool hasChanged;
+
+protected:
+	void closeEvent(QCloseEvent *);
 
 private slots:
 	void parseAndPaint();

@@ -11,12 +11,15 @@
 #include <QDir>
 #include <QTextStream>
 #include <QFileInfo>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow)
 {
 	ui->setupUi(this);
+
+	hasChanged = false;
 
 	highlight = new QCheckBox("Highlight");
 	highlight->setChecked(false);
@@ -62,6 +65,7 @@ void MainWindow::switchHighlight(bool h)
 
 void MainWindow::parseAndPaint()
 {
+	hasChanged = true;
 	QByteArray ba;
 	buffer.setBuffer(&ba);
 	buffer.open(QIODevice::ReadWrite);
@@ -79,6 +83,7 @@ void MainWindow::parseAndPaint()
 			command->setSkipImages(false);
 		}
 		command->clearTrans();
+		command->clearVars();
 		if(highlight->isChecked())
 			command->setHighlightPP(ui->D->getHightlightPath());
 		command->resetAbsolute();
@@ -109,6 +114,7 @@ void MainWindow::parseAndPaint()
 			}
 			++lc;
 		}
+		command->endDraw();
 		painter->end();
 	}
 	buffer.close();
@@ -118,8 +124,19 @@ void MainWindow::parseAndPaint()
 
 }
 
+void MainWindow::maybeSave()
+{
+	if(hasChanged)
+	{
+		QMessageBox::StandardButton qr = QMessageBox::question(this, "grrrr", "Seems that you have unsaved changes, want to save them?", QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Ok);
+		if(qr == QMessageBox::Ok)
+			saveTxt();
+	}
+}
+
 void MainWindow::newText()
 {
+	maybeSave();
 	command->clearAlias();
 	command->clearImageCache();
 	ui->L->setText(QString());
@@ -128,6 +145,7 @@ void MainWindow::newText()
 
 void MainWindow::loadText()
 {
+	maybeSave();
 	QString fn(QFileDialog::getOpenFileName(this, QString("Load Text"), QDir::homePath()));
 	if(fn.isEmpty())
 		return;
@@ -143,6 +161,7 @@ void MainWindow::loadText()
 		ui->L->blockSignals(false);
 		parseAndPaint();
 	}
+	hasChanged = false;
 }
 
 void MainWindow::saveTxt()
@@ -158,6 +177,7 @@ void MainWindow::saveTxt()
 		f.write(ui->L->text().toUtf8());
 		f.close();
 	}
+	hasChanged = false;
 }
 
 void MainWindow::saveTxtAs()
@@ -172,6 +192,7 @@ void MainWindow::saveTxtAs()
 		f.write(ui->L->text().toUtf8());
 		f.close();
 	}
+	hasChanged = false;
 }
 
 void MainWindow::saveSVG()
@@ -196,6 +217,7 @@ void MainWindow::saveSVG()
 		QPainterPath pp;
 		command->setPP(pp);
 		command->clearTrans();
+		command->clearVars();
 		command->resetAbsolute();
 		painter->setRenderHint(QPainter::Antialiasing);
 		foreach(QString s, tl)
@@ -209,12 +231,19 @@ void MainWindow::saveSVG()
 			command->Draw(vl);
 
 		}
+		command->endDraw();
 		painter->end();
 		buffer.close();
 		delete svg;
 		f.write(ba);
 		f.close();
 	}
+}
+
+void MainWindow::closeEvent(QCloseEvent * e)
+{
+	maybeSave();
+	QMainWindow::closeEvent(e);
 }
 
 
