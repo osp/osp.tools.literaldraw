@@ -464,6 +464,17 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		QString svgfile(vars.at(1).toString());
 		QString effectfile(vars.at(2).toString());
 		QString effect(vars.at(3).toString());
+		bool meanIsReallyMean(false);
+		qDebug()<<"Vars"<<vars.count();
+		if(vars.count() > 5)
+		{
+
+			int tmpMIRM(vars.at(5).toInt());
+			qDebug()<<"tmp"<<vars.at(5)<<tmpMIRM;
+			if( tmpMIRM > 0)
+				meanIsReallyMean = true;
+		}
+
 		bool eRotate(effect == QString("r") || effect == QString("R"));
 		bool eScale(effect == QString("s") || effect == QString("S"));
 		bool eScaleAndRotate(effect == QString("w") || effect == QString("W"));
@@ -526,7 +537,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 					double val(0);
 					double nVal(0);
 					double cMean(0);
-					if(false)
+					if(meanIsReallyMean)
 					{
 						for(int cy(cyOrigin); cy < cBottom; ++cy)
 						{
