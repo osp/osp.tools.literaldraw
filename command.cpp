@@ -451,6 +451,7 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 		{
 			QSvgRenderer svgRdr(svgfile);
 			QRectF r(svgRdr.viewBoxF());
+			r.moveTo(curPos);
 			svgRdr.render(painter, r);
 		}
 
@@ -524,35 +525,55 @@ void Command::Draw(const QVariantList &vars, bool higlight)
 					int cBottom(qMin(qRound(r.height()) + cyOrigin, img.height()));
 					double val(0);
 					double nVal(0);
-					for(int cy(cyOrigin); cy < cBottom; ++cy)
+					double cMean(0);
+					if(false)
 					{
-						for(int cx(cxOrigin); cx < cRight; ++cx)
+						for(int cy(cyOrigin); cy < cBottom; ++cy)
 						{
-							QColor ccolor(img.pixel(cx,cy));
-							if(cc == Red)
-								val += ccolor.redF();
-							else if(cc == Green)
-								val += ccolor.greenF();
-							else if(cc == Blue)
-								val += ccolor.blueF();
-							else if(cc == Hue)
-								val += ccolor.hslHueF();
-							else if(cc == Saturation)
-								val += ccolor.hslSaturationF();
-							else if(cc == Lightness)
-								val += ccolor.lightnessF();
-							++nVal;
+							for(int cx(cxOrigin); cx < cRight; ++cx)
+							{
+								QColor ccolor(img.pixel(cx,cy));
+								if(cc == Red)
+									val += ccolor.redF();
+								else if(cc == Green)
+									val += ccolor.greenF();
+								else if(cc == Blue)
+									val += ccolor.blueF();
+								else if(cc == Hue)
+									val += ccolor.hslHueF();
+								else if(cc == Saturation)
+									val += ccolor.hslSaturationF();
+								else if(cc == Lightness)
+									val += ccolor.lightnessF();
+								++nVal;
+							}
 						}
+						cMean = val / nVal;
+						qDebug()<<val<<cMean<<nVal;
 					}
-					double cMean(val / nVal);
-					qDebug()<<val<<cMean<<nVal;
+					else
+					{
+						QColor ccolor(img.pixel(cxOrigin + (r.width()/2),cyOrigin + (r.height()/2)));
+						if(cc == Red)
+							cMean = ccolor.redF();
+						else if(cc == Green)
+							cMean = ccolor.greenF();
+						else if(cc == Blue)
+							cMean = ccolor.blueF();
+						else if(cc == Hue)
+							cMean = ccolor.hslHueF();
+						else if(cc == Saturation)
+							cMean = ccolor.hslSaturationF();
+						else if(cc == Lightness)
+							cMean = ccolor.lightnessF();
+					}
 					if(eInvert)
 						cMean = 1 - cMean;
 					if(cMean == 0)
 						continue;
 
-					double tx(x * r.width() );
-					double ty(y * r.height());
+					double tx((x * r.width()) + curPos.x());
+					double ty(y * r.height() + curPos.y());
 					double hW(r.width() / 2.0);
 					double hH(r.height() / 2.0);
 					painter->save();
